@@ -1,6 +1,9 @@
 #include "tools/cabana/mainwin.h"
 
+#include <algorithm>
 #include <iostream>
+#include <string>
+
 #include <QClipboard>
 #include <QDesktopWidget>
 #include <QFile>
@@ -190,7 +193,7 @@ void MainWindow::createDockWidgets() {
   video_splitter = new QSplitter(Qt::Vertical, this);
   video_widget = new VideoWidget(this);
   video_splitter->addWidget(video_widget);
-  QObject::connect(charts_widget, &ChartsWidget::rangeChanged, video_widget, &VideoWidget::rangeChanged);
+  QObject::connect(charts_widget, &ChartsWidget::rangeChanged, video_widget, &VideoWidget::updateTimeRange);
 
   video_splitter->addWidget(charts_container);
   video_splitter->setStretchFactor(1, 1);
@@ -603,7 +606,13 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     settings.video_splitter_state = video_splitter->saveState();
   }
   settings.message_header_state = messages_widget->saveHeaderState();
-  settings.save();
+
+  auto status = settings.save();
+  if (status == QSettings::AccessError) {
+    QString error = tr("Failed to write settings to [%1]: access denied").arg(Settings::filePath());
+    qDebug() << error;
+    QMessageBox::warning(this, tr("Failed to write settings"), error);
+  }
   QWidget::closeEvent(event);
 }
 

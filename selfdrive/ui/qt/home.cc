@@ -34,7 +34,7 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
   slayout->addWidget(home);
 
   onroad = new OnroadWindow(this);
-  QObject::connect(onroad, &OnroadWindow::mapWindowShown, this, [=] { sidebar->hide(); });
+  QObject::connect(onroad, &OnroadWindow::mapPanelRequested, this, [=] { sidebar->hide(); });
   slayout->addWidget(onroad);
 
   body = new BodyWindow(this);
@@ -53,6 +53,10 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
 
 void HomeWindow::showSidebar(bool show) {
   sidebar->setVisible(show);
+}
+
+void HomeWindow::showMapPanel(bool show) {
+  onroad->showMapPanel(show);
 }
 
 void HomeWindow::updateState(const UIState &s) {
@@ -153,9 +157,9 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
     left_widget->addWidget(new PrimeAdWidget);
     left_widget->setStyleSheet("border-radius: 10px;");
 
-    left_widget->setCurrentIndex(uiState()->primeType() ? 0 : 1);
-    connect(uiState(), &UIState::primeTypeChanged, [=](int prime_type) {
-      left_widget->setCurrentIndex(prime_type ? 0 : 1);
+    left_widget->setCurrentIndex(uiState()->hasPrime() ? 0 : 1);
+    connect(uiState(), &UIState::primeChanged, [=](bool prime) {
+      left_widget->setCurrentIndex(prime ? 0 : 1);
     });
 
     home_layout->addWidget(left_widget, 1);
